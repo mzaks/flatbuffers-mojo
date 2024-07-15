@@ -1,0 +1,20 @@
+enum Month: uint8 {
+    Jan, Feb, Mar, 
+    Apr, May, Jun, 
+    Jul, Aug, Sep, 
+    Oct, Nov, Dec,
+}
+
+struct Date {
+    day: uint8;
+    month: Month;
+    year: uint16;
+}
+
+table Person {
+    name: string;
+    age: int (deprecated); 
+    birthday: Date;
+}
+
+root_type Person;
