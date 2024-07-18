@@ -3,7 +3,7 @@ from memory import memcmp
 alias BufPointer = UnsafePointer[UInt8]
 
 @always_inline
-fn indirect(buf: BufPointer, pos: Int) -> Int:
+fn read_offset_as_int(buf: BufPointer, pos: Int) -> Int:
     return int(buf.offset(pos).bitcast[DType.int32]()[0])
 
 
@@ -97,7 +97,7 @@ fn field_string(
 fn _relative_field_offset(
     buf: BufPointer, pos: Int, field_offset: Int
 ) -> Int:
-    var relativ_vtable_offset = indirect(buf, pos)
+    var relativ_vtable_offset = read_offset_as_int(buf, pos)
     var vtable_pos = pos - relativ_vtable_offset
     return int(buf.offset(vtable_pos + field_offset).bitcast[DType.uint16]()[0])
 

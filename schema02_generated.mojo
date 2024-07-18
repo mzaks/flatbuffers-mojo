@@ -74,7 +74,7 @@ struct Person:
 
     @staticmethod
     fn as_root(buf: UnsafePointer[UInt8]) -> Person:
-        return Person(buf, flatbuffers.indirect(buf, 0))
+        return Person(buf, flatbuffers.read_offset_as_int(buf, 0))
 
     @staticmethod
     fn build(
