@@ -1,11 +1,19 @@
 from .flx_buffer import FlxBuffer
 
-struct FlxMap[dedup_string: Bool = True, dedup_key: Bool = True, dedup_keys_vec: Bool = True](Movable):
+
+struct FlxMap[
+    dedup_string: Bool = True,
+    dedup_key: Bool = True,
+    dedup_keys_vec: Bool = True,
+](Movable):
     var buffer: FlxBuffer[dedup_string, dedup_key, dedup_keys_vec]
 
-    fn __init__(inout self, owned buffer: FlxBuffer[dedup_string, dedup_key, dedup_keys_vec]):
+    fn __init__(
+        inout self,
+        owned buffer: FlxBuffer[dedup_string, dedup_key, dedup_keys_vec],
+    ):
         self.buffer = buffer^
-    
+
     fn __init__(inout self):
         self.buffer = FlxBuffer[dedup_string, dedup_key, dedup_keys_vec]()
         self.buffer.start_map()
@@ -17,13 +25,15 @@ struct FlxMap[dedup_string: Bool = True, dedup_key: Bool = True, dedup_keys_vec:
         self.buffer.key(key)
         self.buffer.add(value)
         return self^
-    
+
     fn add[D: DType](owned self, key: String, value: SIMD[D, 1]) -> Self:
         self.buffer.key(key)
         self.buffer.add(value)
         return self^
 
-    fn add_indirect[D: DType](owned self, key: String, value: SIMD[D, 1]) -> Self:
+    fn add_indirect[
+        D: DType
+    ](owned self, key: String, value: SIMD[D, 1]) -> Self:
         self.buffer.key(key)
         self.buffer.add_indirect(value)
         return self^
@@ -37,8 +47,10 @@ struct FlxMap[dedup_string: Bool = True, dedup_key: Bool = True, dedup_keys_vec:
         self.buffer.key(key)
         self.buffer.add(value)
         return self^
-    
-    fn add(owned self, key: String, value: DTypePointer[DType.uint8], length: Int) -> Self:
+
+    fn add(
+        owned self, key: String, value: DTypePointer[DType.uint8], length: Int
+    ) -> Self:
         self.buffer.key(key)
         self.buffer.blob(value, length)
         return self^
@@ -47,8 +59,10 @@ struct FlxMap[dedup_string: Bool = True, dedup_key: Bool = True, dedup_keys_vec:
         self.buffer.key(key)
         self.buffer.start_map()
         return self^
-    
-    fn vec(owned self, key: String) -> FlxVec[dedup_string, dedup_key, dedup_keys_vec]:
+
+    fn vec(
+        owned self, key: String
+    ) -> FlxVec[dedup_string, dedup_key, dedup_keys_vec]:
         # TODO: investigate ownership transfer instead of copy
         var buffer = self.buffer
         buffer.key(key)
@@ -64,7 +78,9 @@ struct FlxMap[dedup_string: Bool = True, dedup_key: Bool = True, dedup_keys_vec:
             raise "This map is nested in a vector, please call up_to_vec instead"
         return self^
 
-    fn up_to_vec(owned self, ref_key: String = "") raises -> FlxVec[dedup_string, dedup_key, dedup_keys_vec]:
+    fn up_to_vec(
+        owned self, ref_key: String = ""
+    ) raises -> FlxVec[dedup_string, dedup_key, dedup_keys_vec]:
         # TODO: investigate ownership transfer instead of copy
         var buffer = self.buffer
         var depth = len(buffer._stack_is_vector)
@@ -78,12 +94,20 @@ struct FlxMap[dedup_string: Bool = True, dedup_key: Bool = True, dedup_keys_vec:
     fn finish(owned self) raises -> (DTypePointer[DType.uint8], Int):
         return self.buffer._finish()
 
-struct FlxVec[dedup_string: Bool = True, dedup_key: Bool = True, dedup_keys_vec: Bool = True](Movable):
+
+struct FlxVec[
+    dedup_string: Bool = True,
+    dedup_key: Bool = True,
+    dedup_keys_vec: Bool = True,
+](Movable):
     var buffer: FlxBuffer[dedup_string, dedup_key, dedup_keys_vec]
 
-    fn __init__(inout self, owned buffer: FlxBuffer[dedup_string, dedup_key, dedup_keys_vec]):
+    fn __init__(
+        inout self,
+        owned buffer: FlxBuffer[dedup_string, dedup_key, dedup_keys_vec],
+    ):
         self.buffer = buffer^
-    
+
     fn __init__(inout self):
         self.buffer = FlxBuffer[dedup_string, dedup_key, dedup_keys_vec]()
         self.buffer.start_vector()
@@ -94,11 +118,11 @@ struct FlxVec[dedup_string: Bool = True, dedup_key: Bool = True, dedup_keys_vec:
     fn add(owned self, value: Int) -> Self:
         self.buffer.add(value)
         return self^
-    
+
     fn add[D: DType](owned self, value: SIMD[D, 1]) -> Self:
         self.buffer.add(value)
         return self^
-    
+
     fn add_indirect[D: DType](owned self, value: SIMD[D, 1]) -> Self:
         self.buffer.add_indirect(value)
         return self^
@@ -129,7 +153,9 @@ struct FlxVec[dedup_string: Bool = True, dedup_key: Bool = True, dedup_keys_vec:
         self.buffer.add_null()
         return self^
 
-    fn up_to_map(owned self, ref_key: String = "") raises -> FlxMap[dedup_string, dedup_key, dedup_keys_vec]:
+    fn up_to_map(
+        owned self, ref_key: String = ""
+    ) raises -> FlxMap[dedup_string, dedup_key, dedup_keys_vec]:
         # TODO: investigate ownership transfer instead of copy
         var buffer = self.buffer
         var depth = len(buffer._stack_is_vector)

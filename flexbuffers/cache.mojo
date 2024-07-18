@@ -1,25 +1,31 @@
 from memory import memset_zero, memcpy
 from .data_types import StackValue
 
+alias BufPointer = UnsafePointer[UInt8]
+alias KeyMapPointer = UnsafePointer[UInt32]
+
+
 @value
 struct Key(CollectionElement):
-    var pointer: DTypePointer[DType.uint8]
+    var pointer: BufPointer
     var size: Int
 
-    fn __init__(inout self, pointer: DTypePointer[DType.uint8], size: Int):
-        var cp = DTypePointer[DType.uint8].alloc(size)
+    fn __init__(inout self, pointer: BufPointer, size: Int):
+        var cp = BufPointer.alloc(size)
         memcpy(cp, pointer, size)
         self.pointer = cp
         self.size = size
+
 
 # alias Key = (DTypePointer[DType.uint8], Int)
 alias Keys = List[Key]
 alias Values = List[StackValue]
 
+
 struct _CacheStackValue(Movable, Copyable):
     var keys: Keys
     var values: Values
-    var key_map: DTypePointer[DType.uint32]
+    var key_map: KeyMapPointer
     var count: Int
     var capacity: Int
 
@@ -28,9 +34,9 @@ struct _CacheStackValue(Movable, Copyable):
         self.capacity = 16
         self.keys = Keys(capacity=self.capacity)
         self.values = Values(capacity=self.capacity)
-        self.key_map = DTypePointer[DType.uint32].alloc(self.capacity)
+        self.key_map = KeyMapPointer.alloc(self.capacity)
         memset_zero(self.key_map, self.capacity)
-    
+
     fn __moveinit__(inout self, owned other: Self):
         self.count = other.count
         self.capacity = other.capacity
@@ -42,8 +48,8 @@ struct _CacheStackValue(Movable, Copyable):
         self.count = other.count
         self.capacity = other.capacity
         var keys_count = len(other.keys)
-        
-        self.key_map = DTypePointer[DType.uint32].alloc(self.capacity)
+
+        self.key_map = KeyMapPointer.alloc(self.capacity)
         memcpy(self.key_map, other.key_map, self.capacity)
         # self.keys = other.keys
         # self.values = other.values
@@ -53,7 +59,7 @@ struct _CacheStackValue(Movable, Copyable):
             var key = other.keys[i]
             var p = key.pointer
             var size = key.size
-            var cp = DTypePointer[DType.uint8].alloc(size)
+            var cp = BufPointer.alloc(size)
             memcpy(cp, p, size)
             var new_key = Key(cp, size)
             self.keys.append(new_key)
@@ -69,15 +75,15 @@ struct _CacheStackValue(Movable, Copyable):
         if self.count / self.capacity >= 0.8:
             self._rehash()
         self._put(key, value, -1)
-    
+
     fn _rehash(inout self):
         var old_mask_capacity = self.capacity >> 3
         self.key_map.free()
         self.capacity <<= 1
         var mask_capacity = self.capacity >> 3
-        self.key_map = DTypePointer[DType.uint32].alloc(self.capacity)
+        self.key_map = KeyMapPointer.alloc(self.capacity)
         memset_zero(self.key_map, self.capacity)
-        
+
         for i in range(len(self.keys)):
             self._put(self.keys[i], self.values[i], i + 1)
 
@@ -103,7 +109,7 @@ struct _CacheStackValue(Movable, Copyable):
             if self._eq(other_key, key):
                 self.values[key_index - 1] = value
                 return
-            
+
             key_map_index = (key_map_index + 1) & modulo_mask
 
     fn _hash(self, key: Key) -> UInt32:
@@ -134,13 +140,19 @@ struct _CacheStackValue(Movable, Copyable):
             return False
         var count = count_a
         while count >= 4:
-            if bytes_a.bitcast[DType.uint32]()[0] != bytes_b.bitcast[DType.uint32]()[0]:
+            if (
+                bytes_a.bitcast[DType.uint32]()[0]
+                != bytes_b.bitcast[DType.uint32]()[0]
+            ):
                 return False
             bytes_a = bytes_a.offset(4)
             bytes_b = bytes_b.offset(4)
             count -= 4
         if count >= 2:
-            if bytes_a.bitcast[DType.uint16]()[0] != bytes_b.bitcast[DType.uint16]()[0]:
+            if (
+                bytes_a.bitcast[DType.uint16]()[0]
+                != bytes_b.bitcast[DType.uint16]()[0]
+            ):
                 return False
             bytes_a = bytes_a.offset(2)
             bytes_b = bytes_b.offset(2)
@@ -162,14 +174,17 @@ struct _CacheStackValue(Movable, Copyable):
                 return self.values[key_index - 1]
             key_map_index = (key_map_index + 1) & modulo_mask
 
+
 from bit import rotate_bits_left
 
 alias ROTATE = 5
-alias SEED32 = 0x9e_37_79_b9
+alias SEED32 = 0x9E_37_79_B9
+
 
 @always_inline
 fn _hash_word32(value: UInt32, word: UInt32) -> UInt32:
     return (rotate_bits_left[ROTATE](value) ^ word) * SEED32
+
 
 fn _key_string(key: Key) -> String:
     var bytes = key.pointer
@@ -179,6 +194,7 @@ fn _key_string(key: Key) -> String:
         result += chr(int(bytes[i]))
     return result
 
+
 fn _key_int_string(key: Key) -> String:
     var bytes = key.pointer
     var count = key.size
@@ -187,15 +203,17 @@ fn _key_int_string(key: Key) -> String:
         result += String(int(bytes[i]))
     return result
 
+
 @value
 struct OffsetAndCount(CollectionElement):
     var offset: Int
     var count: Int
 
+
 struct _CacheStringOrKey(Movable, Copyable):
     # offsets and counts
     var ocs: List[OffsetAndCount]
-    var key_map: DTypePointer[DType.uint32]
+    var key_map: KeyMapPointer
     var count: Int
     var capacity: Int
 
@@ -203,7 +221,7 @@ struct _CacheStringOrKey(Movable, Copyable):
         self.count = 0
         self.capacity = 16
         self.ocs = List[OffsetAndCount](capacity=self.capacity)
-        self.key_map = DTypePointer[DType.uint32].alloc(self.capacity)
+        self.key_map = KeyMapPointer.alloc(self.capacity)
         memset_zero(self.key_map, self.capacity)
 
     fn __moveinit__(inout self, owned other: Self):
@@ -220,19 +238,23 @@ struct _CacheStringOrKey(Movable, Copyable):
         # self.ocs = List[OffsetAndCount](capacity=self.capacity)
         # for i in range(self.capacity):
         #     self.ocs[i] = other.ocs[i]
-        self.key_map = DTypePointer[DType.uint32].alloc(self.capacity)
+        self.key_map = KeyMapPointer.alloc(self.capacity)
         memcpy(self.key_map, other.key_map, self.capacity)
 
     fn __del__(owned self):
-        self.key_map.free()    
+        self.key_map.free()
 
     fn put(inout self, oc: OffsetAndCount, pointer: DTypePointer[DType.uint8]):
         if self.count / self.capacity >= 0.8:
             self._rehash(pointer)
         self._put(oc, pointer, -1)
 
-    fn get(self, bc: (DTypePointer[DType.uint8], Int), pointer: DTypePointer[DType.uint8]) -> Int:
-        var bytes = bc.get[0, DTypePointer[DType.uint8]]()
+    fn get(
+        self,
+        bc: (BufPointer, Int),
+        pointer: BufPointer,
+    ) -> Int:
+        var bytes = bc.get[0, BufPointer]()
         var count = bc.get[1, Int]()
         var key_hash = self._hash(bytes, count)
         var modulo_mask = self.capacity - 1
@@ -242,19 +264,26 @@ struct _CacheStringOrKey(Movable, Copyable):
             if key_index == 0:
                 return -1
             var other_oc = self.ocs[key_index - 1]
-            if self._eq(count, other_oc.count, bytes, pointer.offset(other_oc.offset)):
+            if self._eq(
+                count, other_oc.count, bytes, pointer.offset(other_oc.offset)
+            ):
                 return other_oc.offset
             key_map_index = (key_map_index + 1) & modulo_mask
 
     fn _rehash(inout self, pointer: DTypePointer[DType.uint8]):
         self.key_map.free()
         self.capacity <<= 1
-        self.key_map = DTypePointer[DType.uint32].alloc(self.capacity)
+        self.key_map = KeyMapPointer.alloc(self.capacity)
         memset_zero(self.key_map, self.capacity)
         for i in range(len(self.ocs)):
             self._put(self.ocs[i], pointer, i + 1)
 
-    fn _put(inout self, oc: OffsetAndCount, pointer: DTypePointer[DType.uint8], rehash_index: Int):
+    fn _put(
+        inout self,
+        oc: OffsetAndCount,
+        pointer: DTypePointer[DType.uint8],
+        rehash_index: Int,
+    ):
         var bytes = pointer.offset(oc.offset)
         var count = oc.count
         var key_hash = self._hash(bytes, count)
@@ -274,9 +303,11 @@ struct _CacheStringOrKey(Movable, Copyable):
                 return
 
             var other_ol = self.ocs[key_index - 1]
-            if self._eq(count, other_ol.count, bytes, pointer.offset(other_ol.offset)):
+            if self._eq(
+                count, other_ol.count, bytes, pointer.offset(other_ol.offset)
+            ):
                 return
-            
+
             key_map_index = (key_map_index + 1) & modulo_mask
 
     fn _hash(self, _bytes: DTypePointer[DType.uint8], _count: Int) -> UInt32:
@@ -298,7 +329,13 @@ struct _CacheStringOrKey(Movable, Copyable):
             hash = _hash_word32(hash, c)
         return hash
 
-    fn _eq(self, _count_a: Int, _count_b: Int, _bytes_a: DTypePointer[DType.uint8], _bytes_b: DTypePointer[DType.uint8]) -> Bool:
+    fn _eq(
+        self,
+        _count_a: Int,
+        _count_b: Int,
+        _bytes_a: DTypePointer[DType.uint8],
+        _bytes_b: DTypePointer[DType.uint8],
+    ) -> Bool:
         var bytes_a = _bytes_a
         var bytes_b = _bytes_b
         var count_a = _count_a
@@ -307,19 +344,28 @@ struct _CacheStringOrKey(Movable, Copyable):
             return False
         var count = count_a
         while count >= 8:
-            if bytes_a.bitcast[DType.uint64]()[0] != bytes_b.bitcast[DType.uint64]()[0]:
+            if (
+                bytes_a.bitcast[DType.uint64]()[0]
+                != bytes_b.bitcast[DType.uint64]()[0]
+            ):
                 return False
             bytes_a = bytes_a.offset(8)
             bytes_b = bytes_b.offset(8)
             count -= 8
         if count >= 4:
-            if bytes_a.bitcast[DType.uint32]()[0] != bytes_b.bitcast[DType.uint32]()[0]:
+            if (
+                bytes_a.bitcast[DType.uint32]()[0]
+                != bytes_b.bitcast[DType.uint32]()[0]
+            ):
                 return False
             bytes_a = bytes_a.offset(4)
             bytes_b = bytes_b.offset(4)
             count -= 4
         if count >= 2:
-            if bytes_a.bitcast[DType.uint16]()[0] != bytes_b.bitcast[DType.uint16]()[0]:
+            if (
+                bytes_a.bitcast[DType.uint16]()[0]
+                != bytes_b.bitcast[DType.uint16]()[0]
+            ):
                 return False
             bytes_a = bytes_a.offset(2)
             bytes_b = bytes_b.offset(2)

@@ -1,6 +1,8 @@
 from flatbuffers import *
-from schema03_generated import * 
+from schema03_generated import *
 from testing import *
+from myutils import print_buf
+
 
 def main():
     var builder = Builder()
@@ -11,13 +13,13 @@ def main():
         country=StringRef("Germany"),
     )
     var o_person = Person.build(
-        builder, 
-        name=StringRef("Maxim"), 
+        builder,
+        name=StringRef("Maxim"),
         birthday=DateVO(1980, Month.Feb, 23),
         address=o_address,
     )
     var result = builder^.finish(o_person)
-    print(result.__str__())
+    print_buf(result)
     var person = Person.as_root(result.unsafe_ptr())
     assert_equal(person.name(), "Maxim")
     var birthday = person.birthday()
@@ -29,4 +31,4 @@ def main():
     assert_equal(address.value().city(), "Berlin")
     assert_equal(address.value().zip(), "12345")
     assert_equal(address.value().country(), "Germany")
-    _=result^
+    _ = result^

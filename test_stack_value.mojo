@@ -1,5 +1,6 @@
 from flexbuffers.data_types import StackValue
 
+
 fn main():
     # var sv = StackValue.of(Float16(0.1))
     # print(hex(sv.value))

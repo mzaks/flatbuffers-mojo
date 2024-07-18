@@ -2,6 +2,7 @@ from memory import memcmp
 
 alias BufPointer = UnsafePointer[UInt8]
 
+
 @always_inline
 fn read_offset_as_int(buf: BufPointer, pos: Int) -> Int:
     return int(buf.offset(pos).bitcast[DType.int32]()[0])
@@ -19,16 +20,16 @@ fn field[
     pos: Int,
     field_offset: Int,
     default: Scalar[T],
-) -> Scalar[T]:
+) -> Scalar[
+    T
+]:
     var relativ_value_offset = _relative_field_offset(buf, pos, field_offset)
     if relativ_value_offset == 0:
         return default
     return buf.offset(int(pos) + relativ_value_offset).bitcast[T]()[0]
 
 
-fn field_table(
-    buf: BufPointer, pos: Int, field_offset: Int
-) -> Optional[Int]:
+fn field_table(buf: BufPointer, pos: Int, field_offset: Int) -> Optional[Int]:
     var relativ_value_offset = _relative_field_offset(buf, pos, field_offset)
     if relativ_value_offset == 0:
         return None
@@ -39,18 +40,14 @@ fn field_table(
     )
 
 
-fn field_struct(
-    buf: BufPointer, pos: Int, field_offset: Int
-) -> Optional[Int]:
+fn field_struct(buf: BufPointer, pos: Int, field_offset: Int) -> Optional[Int]:
     var relativ_value_offset = _relative_field_offset(buf, pos, field_offset)
     if relativ_value_offset == 0:
         return None
     return pos + relativ_value_offset
 
 
-fn field_vector(
-    buf: BufPointer, pos: Int, field_offset: Int
-) -> Int:
+fn field_vector(buf: BufPointer, pos: Int, field_offset: Int) -> Int:
     var relativ_value_offset = _relative_field_offset(buf, pos, field_offset)
     if relativ_value_offset == 0:
         return 0
@@ -64,9 +61,7 @@ fn field_vector(
     )
 
 
-fn field_vector_len(
-    buf: BufPointer, pos: Int, field_offset: Int
-) -> Int:
+fn field_vector_len(buf: BufPointer, pos: Int, field_offset: Int) -> Int:
     var relativ_value_offset = _relative_field_offset(buf, pos, field_offset)
     if relativ_value_offset == 0:
         return 0
@@ -78,9 +73,7 @@ fn field_vector_len(
     return int(buf.offset(vec_pos).bitcast[DType.int32]()[0])
 
 
-fn field_string(
-    buf: BufPointer, pos: Int, field_offset: Int
-) -> StringRef:
+fn field_string(buf: BufPointer, pos: Int, field_offset: Int) -> StringRef:
     var relativ_value_offset = _relative_field_offset(buf, pos, field_offset)
     if relativ_value_offset == 0:
         return ""
@@ -94,9 +87,7 @@ fn field_string(
 
 
 @always_inline
-fn _relative_field_offset(
-    buf: BufPointer, pos: Int, field_offset: Int
-) -> Int:
+fn _relative_field_offset(buf: BufPointer, pos: Int, field_offset: Int) -> Int:
     var relativ_vtable_offset = read_offset_as_int(buf, pos)
     var vtable_pos = pos - relativ_vtable_offset
     return int(buf.offset(vtable_pos + field_offset).bitcast[DType.uint16]()[0])

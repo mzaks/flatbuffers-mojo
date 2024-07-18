@@ -2,19 +2,21 @@
 from flexbuffers import flx
 from testing import assert_equal, assert_almost_equal
 
+
 fn test_string() raises:
     var r = flx("Hello world")
     print(r.get[1, Int]())
     # var value = FlxValue(r.get[0, DTypePointer[DType.uint8]](), r.get[1, Int]())
     # _ = assert_equal("Hello world", value.string())
 
+
 # fn test_blob() raises:
 #     var data = DTypePointer[DType.uint8].alloc(1001)
 #     for i in range(1001):
 #         data[i] = 5
-    
+
 #     var r = flx_blob(data, 1001)
-    
+
 #     var value = FlxValue(r.get[0, DTypePointer[DType.uint8]](), r.get[1, Int]())
 #     var blob = value.blob()
 #     _ = assert_equal(blob.get[1, Int](), 1001)
@@ -263,6 +265,7 @@ fn test_string() raises:
 #     )
 #     assert_equal(len(json), 324)
 #     assert_equal(r1.get[1, Int](), 91)
+
 
 fn main():
     try:
