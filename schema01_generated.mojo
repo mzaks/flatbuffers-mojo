@@ -3,8 +3,8 @@ import flatbuffers
 
 @value
 struct Person:
-    var _buf: DTypePointer[DType.uint8]
-    var _pos: Int32
+    var _buf: UnsafePointer[UInt8]
+    var _pos: Int
 
     fn name(self) -> StringRef:
         return flatbuffers.field_string(self._buf, int(self._pos), 4)
@@ -13,14 +13,14 @@ struct Person:
         return flatbuffers.field[DType.int32](self._buf, int(self._pos), 6, 0)
 
     @staticmethod
-    fn as_root(buf: DTypePointer[DType.uint8]) -> Person:
+    fn as_root(buf: UnsafePointer[UInt8]) -> Person:
         return Person(buf, flatbuffers.indirect(buf, 0))
 
     @staticmethod
     fn build(
         inout builder: flatbuffers.Builder,
         *,
-        name: Optional[String] = None,
+        name: Optional[StringRef] = None,
         age: Int32 = 0,
     ) -> flatbuffers.Offset:
         var _name: Optional[flatbuffers.Offset] = None
@@ -34,3 +34,4 @@ struct Person:
             builder.prepend(age)
             builder.slot(1)
         return builder.end_object()
+

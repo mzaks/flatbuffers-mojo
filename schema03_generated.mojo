@@ -27,8 +27,8 @@ struct Month(EqualityComparable):
 
 @value
 struct Date:
-    var _buf: DTypePointer[DType.uint8]
-    var _pos: Int32
+    var _buf: UnsafePointer[UInt8]
+    var _pos: Int
 
     fn day(self) -> UInt8:
         return flatbuffers.read[DType.uint8](self._buf, int(self._pos) + 0)
@@ -60,8 +60,8 @@ struct DateVO:
 
 @value
 struct PostalAddress:
-    var _buf: DTypePointer[DType.uint8]
-    var _pos: Int32
+    var _buf: UnsafePointer[UInt8]
+    var _pos: Int
 
     fn street(self) -> StringRef:
         return flatbuffers.field_string(self._buf, int(self._pos), 4)
@@ -76,17 +76,17 @@ struct PostalAddress:
         return flatbuffers.field_string(self._buf, int(self._pos), 10)
 
     @staticmethod
-    fn as_root(buf: DTypePointer[DType.uint8]) -> PostalAddress:
+    fn as_root(buf: UnsafePointer[UInt8]) -> PostalAddress:
         return PostalAddress(buf, flatbuffers.indirect(buf, 0))
 
     @staticmethod
     fn build(
         inout builder: flatbuffers.Builder,
         *,
-        street: Optional[String] = None,
-        zip: Optional[String] = None,
-        city: Optional[String] = None,
-        country: Optional[String] = None,
+        street: Optional[StringRef] = None,
+        zip: Optional[StringRef] = None,
+        city: Optional[StringRef] = None,
+        country: Optional[StringRef] = None,
     ) -> flatbuffers.Offset:
         var _street: Optional[flatbuffers.Offset] = None
         if street is not None:
@@ -117,8 +117,8 @@ struct PostalAddress:
 
 @value
 struct Person:
-    var _buf: DTypePointer[DType.uint8]
-    var _pos: Int32
+    var _buf: UnsafePointer[UInt8]
+    var _pos: Int
 
     fn name(self) -> StringRef:
         return flatbuffers.field_string(self._buf, int(self._pos), 4)
@@ -136,14 +136,14 @@ struct Person:
         return None
 
     @staticmethod
-    fn as_root(buf: DTypePointer[DType.uint8]) -> Person:
+    fn as_root(buf: UnsafePointer[UInt8]) -> Person:
         return Person(buf, flatbuffers.indirect(buf, 0))
 
     @staticmethod
     fn build(
         inout builder: flatbuffers.Builder,
         *,
-        name: Optional[String] = None,
+        name: Optional[StringRef] = None,
         birthday: Optional[DateVO] = None,
         address: Optional[flatbuffers.Offset] = None,
     ) -> flatbuffers.Offset:
