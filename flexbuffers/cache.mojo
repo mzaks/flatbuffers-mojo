@@ -77,10 +77,10 @@ struct _CacheStackValue(Movable, Copyable):
         self._put(key, value, -1)
 
     fn _rehash(inout self):
-        var old_mask_capacity = self.capacity >> 3
+        # var old_mask_capacity = self.capacity >> 3
         self.key_map.free()
         self.capacity <<= 1
-        var mask_capacity = self.capacity >> 3
+        # var mask_capacity = self.capacity >> 3
         self.key_map = KeyMapPointer.alloc(self.capacity)
         memset_zero(self.key_map, self.capacity)
 

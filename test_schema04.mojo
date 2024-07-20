@@ -1,5 +1,5 @@
 from flatbuffers import *
-from schema03_generated import *
+from schema04_generated import *
 from testing import *
 from myutils import print_buf
 
@@ -12,11 +12,16 @@ def main():
         zip=StringRef("12345"),
         country=StringRef("Germany"),
     )
+    var nicknames = List[Offset]()
+    for nn in List("max", "mzaks", "iceX33"):
+        nicknames.append(builder.prepend(StringRef(nn[])))
+    
     var o_person = Person.build(
         builder,
         name=StringRef("Maxim"),
         birthday=DateVO(1980, Month.Feb, 23),
         address=o_address,
+        nicknames=nicknames
     )
     var result = builder^.finish(o_person)
     print_buf(result, 4)
@@ -32,4 +37,9 @@ def main():
     assert_equal(address.value().zip(), "12345")
     assert_equal(address.value().country(), "Germany")
     assert_equal(address.value().street(), "")
+
+    assert_equal(person.nicknames_length(), 3)
+    assert_equal(person.nicknames(0), "max")
+    assert_equal(person.nicknames(1), "mzaks")
+    assert_equal(person.nicknames(2), "iceX33")
     _ = result^
