@@ -86,6 +86,9 @@ fn field_vector_len(buf: BufPointer, pos: Int, field_offset: Int) -> Int:
     return int(buf.offset(vec_pos).bitcast[DType.int32]()[0])
 
 
+fn has_field(buf: BufPointer, pos: Int, field_offset: Int) -> Bool:
+    return _relative_field_offset(buf, pos, field_offset) > 0
+
 fn field_string(buf: BufPointer, pos: Int, field_offset: Int) -> StringRef:
     var relativ_value_offset = _relative_field_offset(buf, pos, field_offset)
     if relativ_value_offset == 0:

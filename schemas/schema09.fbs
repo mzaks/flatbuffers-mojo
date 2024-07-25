@@ -1,0 +1,13 @@
+table T2 {
+  value: long;
+  flags: [bool];
+}
+
+table T1 {
+  name: string (required);
+  sibling: T2 (required);
+  nickname: string;
+  optinal_sibling: T2;
+}
+
+root_type T1;

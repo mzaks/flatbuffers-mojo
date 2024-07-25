@@ -81,14 +81,26 @@ struct PostalAddress:
     fn street(self) -> StringRef:
         return flatbuffers.field_string(self._buf, int(self._pos), 4)
 
+    fn has_street(self) -> Bool:
+        return flatbuffers.has_field(self._buf, int(self._pos), 4)
+
     fn zip(self) -> StringRef:
         return flatbuffers.field_string(self._buf, int(self._pos), 6)
+
+    fn has_zip(self) -> Bool:
+        return flatbuffers.has_field(self._buf, int(self._pos), 6)
 
     fn city(self) -> StringRef:
         return flatbuffers.field_string(self._buf, int(self._pos), 8)
 
+    fn has_city(self) -> Bool:
+        return flatbuffers.has_field(self._buf, int(self._pos), 8)
+
     fn country(self) -> StringRef:
         return flatbuffers.field_string(self._buf, int(self._pos), 10)
+
+    fn has_country(self) -> Bool:
+        return flatbuffers.has_field(self._buf, int(self._pos), 10)
 
     @staticmethod
     fn as_root(buf: UnsafePointer[UInt8]) -> PostalAddress:
@@ -138,6 +150,9 @@ struct EmailAddress:
     fn email(self) -> StringRef:
         return flatbuffers.field_string(self._buf, int(self._pos), 4)
 
+    fn has_email(self) -> Bool:
+        return flatbuffers.has_field(self._buf, int(self._pos), 4)
+
     @staticmethod
     fn as_root(buf: UnsafePointer[UInt8]) -> EmailAddress:
         return EmailAddress(buf, flatbuffers.read_offset_as_int(buf, 0))
@@ -165,6 +180,9 @@ struct Person:
     fn name(self) -> StringRef:
         return flatbuffers.field_string(self._buf, int(self._pos), 4)
 
+    fn has_name(self) -> Bool:
+        return flatbuffers.has_field(self._buf, int(self._pos), 4)
+
     fn birthday(self) -> Optional[Date]:
         var o = flatbuffers.field_struct(self._buf, int(self._pos), 8)
         if o:
@@ -174,6 +192,9 @@ struct Person:
     fn nicknames(self, i: Int) -> StringRef:
         return flatbuffers.string(self._buf, flatbuffers.field_vector(self._buf, int(self._pos), 12) + i * 4)
 
+    fn has_nicknames(self) -> Bool:
+        return flatbuffers.has_field(self._buf, int(self._pos), 12)
+
     fn nicknames_length(self) -> Int:
         return flatbuffers.field_vector_len(self._buf, int(self._pos), 12)
 
@@ -181,17 +202,26 @@ struct Person:
         var start = flatbuffers.field_vector(self._buf, int(self._pos), 14) + i * 4
         return Date(self._buf, start)
 
+    fn has_important_dates(self) -> Bool:
+        return flatbuffers.has_field(self._buf, int(self._pos), 14)
+
     fn important_dates_length(self) -> Int:
         return flatbuffers.field_vector_len(self._buf, int(self._pos), 14)
 
     fn important_months(self, i: Int) -> Month:
         return flatbuffers.read[DType.uint8](self._buf, flatbuffers.field_vector(self._buf, int(self._pos), 16) + i * 1)
 
+    fn has_important_months(self) -> Bool:
+        return flatbuffers.has_field(self._buf, int(self._pos), 16)
+
     fn important_months_length(self) -> Int:
         return flatbuffers.field_vector_len(self._buf, int(self._pos), 16)
 
     fn lucky_numbers(self, i: Int) -> Int32:
         return flatbuffers.read[DType.int32](self._buf, flatbuffers.field_vector(self._buf, int(self._pos), 18) + i * 4)
+
+    fn has_lucky_numbers(self) -> Bool:
+        return flatbuffers.has_field(self._buf, int(self._pos), 18)
 
     fn lucky_numbers_length(self) -> Int:
         return flatbuffers.field_vector_len(self._buf, int(self._pos), 18)
@@ -200,6 +230,9 @@ struct Person:
         var start = flatbuffers.field_vector(self._buf, int(self._pos), 20) + i * 4
         start += flatbuffers.read_offset_as_int(self._buf, start)
         return Person(self._buf, start)
+
+    fn has_friends(self) -> Bool:
+        return flatbuffers.has_field(self._buf, int(self._pos), 20)
 
     fn friends_length(self) -> Int:
         return flatbuffers.field_vector_len(self._buf, int(self._pos), 20)
@@ -216,6 +249,9 @@ struct Person:
     fn other_adresses_type(self, i: Int) -> Address:
         return flatbuffers.read[DType.uint8](self._buf, flatbuffers.field_vector(self._buf, int(self._pos), 26) + i * 1)
 
+    fn has_other_adresses_type(self) -> Bool:
+        return flatbuffers.has_field(self._buf, int(self._pos), 26)
+
     fn other_adresses_type_length(self) -> Int:
         return flatbuffers.field_vector_len(self._buf, int(self._pos), 26)
 
@@ -228,6 +264,9 @@ struct Person:
         var start = flatbuffers.field_vector(self._buf, int(self._pos), 28) + i * 4
         start += flatbuffers.read_offset_as_int(self._buf, start)
         return EmailAddress(self._buf, start)
+
+    fn has_other_adresses(self) -> Bool:
+        return flatbuffers.has_field(self._buf, int(self._pos), 28)
 
     fn other_adresses_length(self) -> Int:
         return flatbuffers.field_vector_len(self._buf, int(self._pos), 28)
