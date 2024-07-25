@@ -1,0 +1,44 @@
+enum Month: uint8 {
+    Jan, Feb, Mar, 
+    Apr, May, Jun, 
+    Jul, Aug, Sep, 
+    Oct, Nov, Dec,
+}
+
+struct Date {
+    day: uint8;
+    month: Month;
+    year: uint16;
+}
+
+table PostalAddress {
+    street: string;
+    zip: string;
+    city: string;
+    country: string;
+}
+
+table EmailAddress {
+    email: string;
+}
+
+union Address {
+    Postal: PostalAddress, 
+    Email: EmailAddress,
+}
+
+table Person {
+    name: string;
+    age: int (deprecated); 
+    birthday: Date;
+    _address: PostalAddress (deprecated);
+    nicknames: [string];
+    important_dates: [Date];
+    important_months: [Month];
+    lucky_numbers: [int];
+    friends: [Person];
+    primary_address: Address;
+    other_adresses: [Address];
+}
+
+root_type Person;
