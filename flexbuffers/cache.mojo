@@ -10,7 +10,7 @@ struct Key(CollectionElement):
     var pointer: BufPointer
     var size: Int
 
-    fn __init__(inout self, pointer: BufPointer, size: Int):
+    fn __init__(mut self, pointer: BufPointer, size: Int):
         var cp = BufPointer.alloc(size)
         memcpy(cp, pointer, size)
         self.pointer = cp
@@ -29,7 +29,7 @@ struct _CacheStackValue(Movable, Copyable):
     var count: Int
     var capacity: Int
 
-    fn __init__(inout self):
+    fn __init__(mut self):
         self.count = 0
         self.capacity = 16
         self.keys = Keys(capacity=self.capacity)
@@ -37,14 +37,14 @@ struct _CacheStackValue(Movable, Copyable):
         self.key_map = KeyMapPointer.alloc(self.capacity)
         memset_zero(self.key_map, self.capacity)
 
-    fn __moveinit__(inout self, owned other: Self):
+    fn __moveinit__(mut self, owned other: Self):
         self.count = other.count
         self.capacity = other.capacity
         self.values = other.values^
         self.key_map = other.key_map
         self.keys = other.keys^
 
-    fn __copyinit__(inout self, other: Self):
+    fn __copyinit__(mut self, other: Self):
         self.count = other.count
         self.capacity = other.capacity
         var keys_count = len(other.keys)
@@ -71,12 +71,12 @@ struct _CacheStackValue(Movable, Copyable):
             var key = self.keys[i]
             key.pointer.free()
 
-    fn put(inout self, key: Key, value: StackValue):
+    fn put(mut self, key: Key, value: StackValue):
         if self.count / self.capacity >= 0.8:
             self._rehash()
         self._put(key, value, -1)
 
-    fn _rehash(inout self):
+    fn _rehash(mut self):
         # var old_mask_capacity = self.capacity >> 3
         self.key_map.free()
         self.capacity <<= 1
@@ -87,7 +87,7 @@ struct _CacheStackValue(Movable, Copyable):
         for i in range(len(self.keys)):
             self._put(self.keys[i], self.values[i], i + 1)
 
-    fn _put(inout self, key: Key, value: StackValue, rehash_index: Int):
+    fn _put(mut self, key: Key, value: StackValue, rehash_index: Int):
         var key_hash = self._hash(key)
         var modulo_mask = self.capacity - 1
         var key_map_index = int(key_hash & modulo_mask)
@@ -217,20 +217,20 @@ struct _CacheStringOrKey(Movable, Copyable):
     var count: Int
     var capacity: Int
 
-    fn __init__(inout self):
+    fn __init__(mut self):
         self.count = 0
         self.capacity = 16
         self.ocs = List[OffsetAndCount](capacity=self.capacity)
         self.key_map = KeyMapPointer.alloc(self.capacity)
         memset_zero(self.key_map, self.capacity)
 
-    fn __moveinit__(inout self, owned other: Self):
+    fn __moveinit__(mut self, owned other: Self):
         self.count = other.count
         self.capacity = other.capacity
         self.ocs = other.ocs^
         self.key_map = other.key_map
 
-    fn __copyinit__(inout self, other: Self):
+    fn __copyinit__(mut self, other: Self):
         self.count = other.count
         self.capacity = other.capacity
         # TODO: copies elements one by one because otherwise it throws a core dump
@@ -244,7 +244,7 @@ struct _CacheStringOrKey(Movable, Copyable):
     fn __del__(owned self):
         self.key_map.free()
 
-    fn put(inout self, oc: OffsetAndCount, pointer: DTypePointer[DType.uint8]):
+    fn put(mut self, oc: OffsetAndCount, pointer: DTypePointer[DType.uint8]):
         if self.count / self.capacity >= 0.8:
             self._rehash(pointer)
         self._put(oc, pointer, -1)
@@ -270,7 +270,7 @@ struct _CacheStringOrKey(Movable, Copyable):
                 return other_oc.offset
             key_map_index = (key_map_index + 1) & modulo_mask
 
-    fn _rehash(inout self, pointer: DTypePointer[DType.uint8]):
+    fn _rehash(mut self, pointer: DTypePointer[DType.uint8]):
         self.key_map.free()
         self.capacity <<= 1
         self.key_map = KeyMapPointer.alloc(self.capacity)
@@ -279,7 +279,7 @@ struct _CacheStringOrKey(Movable, Copyable):
             self._put(self.ocs[i], pointer, i + 1)
 
     fn _put(
-        inout self,
+        mut self,
         oc: OffsetAndCount,
         pointer: DTypePointer[DType.uint8],
         rehash_index: Int,

@@ -42,7 +42,7 @@ struct Date:
 
     @staticmethod
     fn build(
-        inout builder: flatbuffers.Builder,
+        mut builder: flatbuffers.Builder,
         *,
         day: UInt8,
         month: Month,
@@ -81,7 +81,7 @@ struct Person:
 
     @staticmethod
     fn build(
-        inout builder: flatbuffers.Builder,
+        mut builder: flatbuffers.Builder,
         *,
         name: Optional[StringRef] = None,
         birthday: Optional[DateVO] = None,

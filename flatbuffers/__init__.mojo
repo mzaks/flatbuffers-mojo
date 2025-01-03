@@ -131,7 +131,7 @@ struct Builder:
     var vtables: List[Int]
     var nested: Bool
 
-    fn __init__(inout self, capacity: Int = 1024):
+    fn __init__(mut self, capacity: Int = 1024):
         self.buf = BufPointer.alloc(capacity)
         self.capacity = capacity
         self.head = 0
@@ -158,32 +158,32 @@ struct Builder:
         memcpy(result.unsafe_ptr(), self.buf.offset(self.start()), self.head)
         return result
 
-    fn start_nesting(inout self):
+    fn start_nesting(mut self):
         debug_assert(not self.nested, "double nesting")
         self.nested = True
 
-    fn end_nesting(inout self):
+    fn end_nesting(mut self):
         debug_assert(self.nested, "not nested")
         self.nested = False
 
-    fn start_object(inout self, num_fields: Int):
+    fn start_object(mut self, num_fields: Int):
         self.start_nesting()
         self.current_vtable = List[Int](0) * num_fields
         self.object_end = self.head
         self.minalign = 1
 
-    fn slot(inout self, index: Int):
+    fn slot(mut self, index: Int):
         debug_assert(self.nested, "should be nested")
         self.current_vtable[index] = self.head
 
-    fn pad(inout self, bytes: Int):
+    fn pad(mut self, bytes: Int):
         var start = self.start()
         for _ in range(bytes):
             start -= 1
             self.buf.offset(start)[0] = 0
         self.head += bytes
 
-    fn prep(inout self, size: Int, additional_bytes: Int):
+    fn prep(mut self, size: Int, additional_bytes: Int):
         if size > self.minalign:
             self.minalign = size
         var align_size = ((~(self.head + additional_bytes)) + 1) & (size - 1)
@@ -204,12 +204,12 @@ struct Builder:
             self.capacity = new_capacity
         self.pad(align_size)
 
-    fn prepend[dt: DType](inout self, value: Scalar[dt]):
+    fn prepend[dt: DType](mut self, value: Scalar[dt]):
         self.prep(dt.sizeof(), 0)
         self.head += dt.sizeof()
         self.buf.offset(self.start()).bitcast[dt]()[0] = value
 
-    fn prepend(inout self, offset: Offset):
+    fn prepend(mut self, offset: Offset):
         self.prep(4, 0)
         debug_assert(
             offset.value <= self.head, "offset points outside of the buffer"
@@ -217,17 +217,17 @@ struct Builder:
         self.prepend(self.head - offset.value + 4)
 
     fn start_vector(
-        inout self, elem_size: Int, num_elements: Int, alignment: Int
+        mut self, elem_size: Int, num_elements: Int, alignment: Int
     ):
         self.start_nesting()
         self.prep(max(4, alignment), elem_size * num_elements)
 
-    fn end_vector(inout self, num_elements: Int) -> Offset:
+    fn end_vector(mut self, num_elements: Int) -> Offset:
         self.end_nesting()
         self.prepend(Int32(num_elements))
         return self.offset()
 
-    fn prepend(inout self, s: StringRef) -> Offset:
+    fn prepend(mut self, s: StringRef) -> Offset:
         self.start_nesting()
         var bytes = s.length
         self.prep(4, bytes + 1)
@@ -236,7 +236,7 @@ struct Builder:
         self.buf[self.start() + bytes] = 0
         return self.end_vector(bytes)
 
-    fn end_object(inout self) -> Offset:
+    fn end_object(mut self) -> Offset:
         self.end_nesting()
         self.prepend(Int32(0))
         var object_offset = self.head
