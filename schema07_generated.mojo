@@ -56,7 +56,7 @@ struct Date:
 
     @staticmethod
     fn build(
-        inout builder: flatbuffers.Builder,
+        mut builder: flatbuffers.Builder,
         *,
         day: UInt8,
         month: Month,
@@ -108,7 +108,7 @@ struct PostalAddress:
 
     @staticmethod
     fn build(
-        inout builder: flatbuffers.Builder,
+        mut builder: flatbuffers.Builder,
         *,
         street: Optional[StringRef] = None,
         zip: Optional[StringRef] = None,
@@ -159,7 +159,7 @@ struct EmailAddress:
 
     @staticmethod
     fn build(
-        inout builder: flatbuffers.Builder,
+        mut builder: flatbuffers.Builder,
         *,
         email: Optional[StringRef] = None,
     ) -> flatbuffers.Offset:
@@ -277,7 +277,7 @@ struct Person:
 
     @staticmethod
     fn build(
-        inout builder: flatbuffers.Builder,
+        mut builder: flatbuffers.Builder,
         *,
         name: Optional[StringRef] = None,
         birthday: Optional[DateVO] = None,

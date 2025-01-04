@@ -12,7 +12,7 @@ struct FlxValue(Sized):
 
     @always_inline
     fn __init__(
-        inout self,
+        mut self,
         bytes: BufPointer,
         parent_byte_width: UInt8,
         packed_type: UInt8,
@@ -24,7 +24,7 @@ struct FlxValue(Sized):
 
     @always_inline
     fn __init__(
-        inout self,
+        mut self,
         bytes: BufPointer,
         parent_byte_width: UInt8,
         byte_width: UInt8,
@@ -35,7 +35,7 @@ struct FlxValue(Sized):
         self._byte_width = byte_width
         self._type = type
 
-    fn __init__(inout self, bytes: BufPointer, length: Int) raises:
+    fn __init__(mut self, bytes: BufPointer, length: Int) raises:
         if length < 3:
             raise "Length should be at least 3, was: " + String(length)
         var parent_byte_width = bytes[length - 1]
@@ -46,7 +46,7 @@ struct FlxValue(Sized):
         self._byte_width = 1 << (packed_type & 3)
         self._type = ValueType(packed_type >> 2)
 
-    fn __init__(inout self, bytes_and_length: (BufPointer, Int)) raises:
+    fn __init__(mut self, bytes_and_length: (BufPointer, Int)) raises:
         var bytes = bytes_and_length.get[0, BufPointer]()
         var length = bytes_and_length.get[1, Int]()
         if length < 3:
@@ -59,7 +59,7 @@ struct FlxValue(Sized):
         self._byte_width = 1 << (packed_type & 3)
         self._type = ValueType(packed_type >> 2)
 
-    fn __moveinit__(inout self, owned other: Self):
+    fn __moveinit__(mut self, owned other: Self):
         self._bytes = other._bytes
         self._parent_byte_width = other._parent_byte_width
         self._byte_width = other._byte_width
@@ -281,7 +281,7 @@ struct FlxVecValue(Sized):
 
     @always_inline
     fn __init__(
-        inout self,
+        mut self,
         bytes: BufPointer,
         byte_width: UInt8,
         type: ValueType,
@@ -337,7 +337,7 @@ struct FlxMapValue(Sized):
 
     @always_inline
     fn __init__(
-        inout self,
+        mut self,
         bytes: BufPointer,
         byte_width: UInt8,
         length: Int,

@@ -24,7 +24,7 @@ struct T2:
 
     @staticmethod
     fn build(
-        inout builder: flatbuffers.Builder,
+        mut builder: flatbuffers.Builder,
         *,
         value: Int64 = 0,
         flags: List[Scalar[DType.bool]] = List[Scalar[DType.bool]](),
@@ -75,7 +75,7 @@ struct T1:
 
     @staticmethod
     fn build(
-        inout builder: flatbuffers.Builder,
+        mut builder: flatbuffers.Builder,
         *,
         name: StringRef,
         sibling: flatbuffers.Offset,

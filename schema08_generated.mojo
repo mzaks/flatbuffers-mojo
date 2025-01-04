@@ -137,7 +137,7 @@ struct ScalarStuff:
 
     @staticmethod
     fn build(
-        inout builder: flatbuffers.Builder,
+        mut builder: flatbuffers.Builder,
         *,
         just_i8: Int8 = 0,
         maybe_i8: Optional[Int8] = None,

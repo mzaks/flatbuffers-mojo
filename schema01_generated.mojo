@@ -19,7 +19,7 @@ struct Person:
 
     @staticmethod
     fn build(
-        inout builder: flatbuffers.Builder,
+        mut builder: flatbuffers.Builder,
         *,
         name: Optional[StringRef] = None,
         age: Int32 = 0,

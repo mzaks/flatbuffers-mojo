@@ -9,16 +9,16 @@ struct FlxMap[
     var buffer: FlxBuffer[dedup_string, dedup_key, dedup_keys_vec]
 
     fn __init__(
-        inout self,
+        mut self,
         owned buffer: FlxBuffer[dedup_string, dedup_key, dedup_keys_vec],
     ):
         self.buffer = buffer^
 
-    fn __init__(inout self):
+    fn __init__(mut self):
         self.buffer = FlxBuffer[dedup_string, dedup_key, dedup_keys_vec]()
         self.buffer.start_map()
 
-    fn __moveinit__(inout self, owned other: Self):
+    fn __moveinit__(mut self, owned other: Self):
         self.buffer = other.buffer^
 
     fn add(owned self, key: String, value: Int) -> Self:
@@ -103,16 +103,16 @@ struct FlxVec[
     var buffer: FlxBuffer[dedup_string, dedup_key, dedup_keys_vec]
 
     fn __init__(
-        inout self,
+        mut self,
         owned buffer: FlxBuffer[dedup_string, dedup_key, dedup_keys_vec],
     ):
         self.buffer = buffer^
 
-    fn __init__(inout self):
+    fn __init__(mut self):
         self.buffer = FlxBuffer[dedup_string, dedup_key, dedup_keys_vec]()
         self.buffer.start_vector()
 
-    fn __moveinit__(inout self, owned other: Self):
+    fn __moveinit__(mut self, owned other: Self):
         self.buffer = other.buffer^
 
     fn add(owned self, value: Int) -> Self:

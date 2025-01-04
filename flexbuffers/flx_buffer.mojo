@@ -59,7 +59,7 @@ struct FlxBuffer[
     var _keys_vec_cache: _CacheStackValue
     var _reference_cache: _CacheStackValue
 
-    fn __init__(inout self, size: UInt64 = 1 << 11):
+    fn __init__(mut self, size: UInt64 = 1 << 11):
         self._size = size
         self._stack = List[StackValue]()
         self._stack_positions = List[Int]()
@@ -72,7 +72,7 @@ struct FlxBuffer[
         self._keys_vec_cache = _CacheStackValue()
         self._reference_cache = _CacheStackValue()
 
-    fn __moveinit__(inout self, owned other: Self):
+    fn __moveinit__(mut self, owned other: Self):
         self._size = other._size
         self._stack = other._stack^
         self._stack_positions = other._stack_positions^
@@ -85,7 +85,7 @@ struct FlxBuffer[
         self._keys_vec_cache = other._keys_vec_cache^
         self._reference_cache = other._reference_cache^
 
-    fn __copyinit__(inout self, other: Self):
+    fn __copyinit__(mut self, other: Self):
         self._size = other._size
         self._stack = other._stack
         self._stack_positions = other._stack_positions
@@ -103,22 +103,22 @@ struct FlxBuffer[
         if not self._finished:
             self._bytes.free()
 
-    fn add_null(inout self):
+    fn add_null(mut self):
         self._stack.append(StackValue.Null)
 
-    fn add[D: DType](inout self, value: SIMD[D, 1]):
+    fn add[D: DType](mut self, value: SIMD[D, 1]):
         self._stack.append(StackValue.of(value))
 
-    fn add(inout self, value: Int):
+    fn add(mut self, value: Int):
         self._stack.append(StackValue.of(value))
 
-    fn add(inout self, value: String):
+    fn add(mut self, value: String):
         self._add_string[as_key=False](value)
 
-    fn key(inout self, value: String):
+    fn key(mut self, value: String):
         self._add_string[as_key=True](value)
 
-    fn _add_string[as_key: Bool](inout self, value: String):
+    fn _add_string[as_key: Bool](mut self, value: String):
         var byte_length = len(value)
         var bit_width = ValueBitWidth.of(byte_length)
         var bytes = value.unsafe_ptr()
@@ -183,7 +183,7 @@ struct FlxBuffer[
             self._stack.append(StackValue(offset, bit_width, ValueType.String))
         value._strref_keepalive()
 
-    fn blob(inout self, value: BufPointer, length: Int):
+    fn blob(mut self, value: BufPointer, length: Int):
         var bit_width = ValueBitWidth.of(length)
         var byte_width = self._align(bit_width)
         self._write(length, byte_width)
@@ -193,7 +193,7 @@ struct FlxBuffer[
         self._offset = new_offest
         self._stack.append(StackValue(offset, bit_width, ValueType.Blob))
 
-    fn add_indirect[D: DType](inout self, value: SIMD[D, 1]):
+    fn add_indirect[D: DType](mut self, value: SIMD[D, 1]):
         var value_type = ValueType.of[D]()
         if (
             value_type == ValueType.Int
@@ -208,7 +208,7 @@ struct FlxBuffer[
         else:
             self._stack.append(StackValue.of(value))
 
-    fn add[D: DType](inout self, value: UnsafePointer[Scalar[D]], length: Int):
+    fn add[D: DType](mut self, value: UnsafePointer[Scalar[D]], length: Int):
         var len_bit_width = ValueBitWidth.of(length)
         var elem_bit_width = ValueBitWidth.of(SIMD[D, 1](0))
         if len_bit_width <= elem_bit_width:
@@ -240,7 +240,7 @@ struct FlxBuffer[
             except:
                 pass
 
-    fn add_referenced(inout self, reference_key: String) raises:
+    fn add_referenced(mut self, reference_key: String) raises:
         var key = Key(reference_key.unsafe_ptr(), len(reference_key))
         var stack_value = self._reference_cache.get(key, StackValue.Null)
         key.pointer.free()
@@ -248,15 +248,15 @@ struct FlxBuffer[
             raise "No value for reference key " + reference_key
         self._stack.append(stack_value)
 
-    fn start_vector(inout self):
+    fn start_vector(mut self):
         self._stack_positions.append(len(self._stack))
         self._stack_is_vector.append(True)
 
-    fn start_map(inout self):
+    fn start_map(mut self):
         self._stack_positions.append(len(self._stack))
         self._stack_is_vector.append(False)
 
-    fn end(inout self, reference_key: String = "") raises:
+    fn end(mut self, reference_key: String = "") raises:
         var position = self._stack_positions.pop()
         var is_vector = self._stack_is_vector.pop()
         if is_vector:
@@ -270,7 +270,7 @@ struct FlxBuffer[
     fn finish(owned self) raises -> (BufPointer, Int):
         return self._finish()
 
-    fn _finish(inout self) raises -> (BufPointer, Int):
+    fn _finish(mut self) raises -> (BufPointer, Int):
         self._finished = True
 
         while len(self._stack_positions) > 0:
@@ -288,12 +288,12 @@ struct FlxBuffer[
         self._write(byte_width.cast[DType.uint8]())
         return self._bytes, int(self._offset)
 
-    fn _align(inout self, bit_width: ValueBitWidth) -> UInt64:
+    fn _align(mut self, bit_width: ValueBitWidth) -> UInt64:
         var byte_width = 1 << int(bit_width.value)
         self._offset += padding_size(self._offset, byte_width)
         return byte_width
 
-    fn _write(inout self, value: StackValue, byte_width: UInt64):
+    fn _write(mut self, value: StackValue, byte_width: UInt64):
         self._grow_bytes_if_needed(self._offset + byte_width)
         if value.is_offset():
             var rel_offset = self._offset - value.as_uint()
@@ -305,26 +305,26 @@ struct FlxBuffer[
             self._bytes[int(self._offset)] = value.to_value(byte_width)
             self._offset = new_offset
 
-    fn _write(inout self, value: UInt64, byte_width: UInt64):
+    fn _write(mut self, value: UInt64, byte_width: UInt64):
         self._grow_bytes_if_needed(self._offset + byte_width)
         var new_offset = self._new_offset(byte_width)
         self._bytes[int(self._offset)] = bitcast[DType.uint8, 8](value)
         # We write 8 bytes but the offset is still set to byte_width
         self._offset = new_offset
 
-    fn _write(inout self, value: UInt8):
+    fn _write(mut self, value: UInt8):
         self._grow_bytes_if_needed(self._offset + 1)
         var new_offset = self._new_offset(1)
         self._bytes[int(self._offset)] = value
         self._offset = new_offset
 
-    fn _new_offset(inout self, byte_width: UInt64) -> UInt64:
+    fn _new_offset(mut self, byte_width: UInt64) -> UInt64:
         var new_offset = self._offset + byte_width
         var min_size = self._offset + max(byte_width, 8)
         self._grow_bytes_if_needed(min_size)
         return new_offset
 
-    fn _grow_bytes_if_needed(inout self, min_size: UInt64):
+    fn _grow_bytes_if_needed(mut self, min_size: UInt64):
         var prev_size = self._size
         while self._size < min_size:
             self._size <<= 1
@@ -334,13 +334,13 @@ struct FlxBuffer[
             memcpy(self._bytes, prev_bytes, int(self._offset))
             prev_bytes.free()
 
-    fn _end_vector(inout self, position: Int) raises:
+    fn _end_vector(mut self, position: Int) raises:
         var length = len(self._stack) - position
         var vec = self._create_vector(position, length, 1)
         self._stack.resize(position, StackValue.Null)
         self._stack.append(vec)
 
-    fn _sort_keys_and_end_map(inout self, position: Int) raises:
+    fn _sort_keys_and_end_map(mut self, position: Int) raises:
         if (len(self._stack) - position) & 1 == 1:
             raise "The stack needs to hold key value pairs (even number of elements). Check if you combined [key] with [add] method calls properly."
         for i in range(position + 2, len(self._stack), 2):
@@ -372,7 +372,7 @@ struct FlxBuffer[
                 return False
             index += 1
 
-    fn _end_map(inout self, start: Int) raises:
+    fn _end_map(mut self, start: Int) raises:
         var length = (len(self._stack) - start) >> 1
         var keys = StackValue.Null
 
@@ -405,7 +405,7 @@ struct FlxBuffer[
         return key
 
     fn _create_vector(
-        inout self,
+        mut self,
         start: Int,
         length: Int,
         step: Int,
